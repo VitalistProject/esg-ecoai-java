@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: ecoal-db
+    environment:
+      POSTGRES_DB: ecoal
+      POSTGRES_USER: ecoal
+      POSTGRES_PASSWORD: ecoal
+    ports:
+      - "5432:5432"
+    volumes:
+      - ecoal_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecoal -d ecoal"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: ecoal-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_USER: ecoal
+      DB_PASSWORD: ecoal
+      JWT_SECRET: ecoal-dev-secret-key-must-be-at-least-256-bits-long-for-hs256
+    ports:
+      - "8080:8080"
+    restart: on-failure
+
+volumes:
+  ecoal_data:
