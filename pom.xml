@@ -48,13 +48,14 @@
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-database-postgresql</artifactId>
+            <artifactId>flyway-database-oracle</artifactId>
         </dependency>
 
-        <!-- PostgreSQL -->
+        <!-- Oracle -->
         <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
+            <groupId>com.oracle.database.jdbc</groupId>
+            <artifactId>ojdbc11</artifactId>
+            <version>23.5.0.24.07</version>
             <scope>runtime</scope>
         </dependency>
 

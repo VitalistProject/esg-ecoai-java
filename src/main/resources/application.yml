@@ -3,17 +3,17 @@ server:
 
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/ecoal}
+    url: ${DB_URL:jdbc:oracle:thin:@localhost:1521/FREEPDB1}
     username: ${DB_USER:ecoal}
     password: ${DB_PASSWORD:ecoal}
-    driver-class-name: org.postgresql.Driver
+    driver-class-name: oracle.jdbc.OracleDriver
   jpa:
     hibernate:
       ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        dialect: org.hibernate.dialect.OracleDialect
         format_sql: false
   flyway:
     enabled: true
@@ -21,5 +21,5 @@ spring:
     baseline-on-migrate: true
 
 jwt:
-  secret: ${JWT_SECRET:ecoal-dev-secret-key-must-be-at-least-256-bits-long-for-hs256}
+  secret: ${JWT_SECRET:ecoal-dev-secret-key}
   expiration-ms: 604800000

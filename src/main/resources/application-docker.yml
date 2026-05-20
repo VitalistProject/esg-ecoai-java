@@ -1,5 +1,5 @@
 spring:
   datasource:
-    url: jdbc:postgresql://db:5432/ecoal
+    url: jdbc:oracle:thin:@db:1521/FREEPDB1
     username: ${DB_USER:ecoal}
     password: ${DB_PASSWORD:ecoal}

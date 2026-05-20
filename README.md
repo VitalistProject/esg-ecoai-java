@@ -8,7 +8,7 @@ REST API for the EcoAL Android app, enabling companies to track ESG goals, tasks
 - Spring Boot 3.3.4
 - Spring Security + JWT
 - Spring Data JPA + Flyway
-- PostgreSQL 16
+- Oracle Database 23ai Free
 - Docker / Docker Compose
 
 ## Quick Start (Docker — recommended)
@@ -29,17 +29,22 @@ Swagger UI at http://localhost:8080/swagger-ui.html
 
 ## Local Development
 
-**Prerequisites:** Java 21, Maven 3.9+, PostgreSQL 16
+**Prerequisites:** Java 21, Maven 3.9+, Oracle Database 23ai Free
 
-1. Create a database and user named `ecoal`:
-   ```sql
-   CREATE USER ecoal WITH PASSWORD 'ecoal';
-   CREATE DATABASE ecoal OWNER ecoal;
-   ```
+The easiest way to run Oracle locally is via Docker:
 
-2. Set environment variables (or rely on defaults):
+```bash
+docker run -d --name oracle-local \
+  -e ORACLE_PASSWORD=ecoal \
+  -e APP_USER=ecoal \
+  -e APP_USER_PASSWORD=ecoal \
+  -p 1521:1521 \
+  gvenzl/oracle-free:23-slim
+```
+
+1. Set environment variables (or rely on defaults):
    ```bash
-   export DB_URL=jdbc:postgresql://localhost:5432/ecoal
+   export DB_URL=jdbc:oracle:thin:@localhost:1521/FREEPDB1
    export DB_USER=ecoal
    export DB_PASSWORD=ecoal
    export JWT_SECRET=your-secret
@@ -54,7 +59,7 @@ Swagger UI at http://localhost:8080/swagger-ui.html
 
 | Variable | Default | Description |
 |---|---|---|
-| DB_URL | jdbc:postgresql://localhost:5432/ecoal | PostgreSQL JDBC URL |
+| DB_URL | jdbc:oracle:thin:@localhost:1521/FREEPDB1 | Oracle JDBC URL |
 | DB_USER | ecoal | DB username |
 | DB_PASSWORD | ecoal | DB password |
 | JWT_SECRET | ecoal-dev-secret-key-... | JWT signing secret (min 256 bits for HS256) |
