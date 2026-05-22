@@ -57,8 +57,6 @@ public class DashboardResponse {
         this.training = training;
     }
 
-    // -------------------------------------------------------------------------
-
     public static class DepartmentEntry {
 
         private String name;
@@ -91,8 +89,6 @@ public class DashboardResponse {
         }
     }
 
-    // -------------------------------------------------------------------------
-
     public static class ContributionEntry {
 
         private String category;
@@ -124,8 +120,6 @@ public class DashboardResponse {
             this.totalPoints = totalPoints;
         }
     }
-
-    // -------------------------------------------------------------------------
 
     public static class EnergyEntry {
 
@@ -180,8 +174,6 @@ public class DashboardResponse {
             this.goalValue = goalValue;
         }
     }
-
-    // -------------------------------------------------------------------------
 
     public static class TrainingEntry {
 

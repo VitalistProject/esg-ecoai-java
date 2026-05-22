@@ -117,7 +117,7 @@ public class AnalyticsService {
     public DashboardResponse dashboard() {
         Long companyId = CurrentUserProvider.get().getCompanyId();
 
-        // Departments: group all users of this company by department and count
+        // Departamentos: agrupa todos os usuários da empresa por departamento e conta
         Map<String, Long> departmentCounts = userAccountRepository.findAll()
                 .stream()
                 .filter(u -> u.getCompany() != null && companyId.equals(u.getCompany().getId()))
@@ -131,7 +131,7 @@ public class AnalyticsService {
                 .map(e -> new DashboardResponse.DepartmentEntry(e.getKey(), e.getValue()))
                 .toList();
 
-        // Contributions: group by category, sum points
+        // Contribuições: agrupa por categoria e soma os pontos
         List<UserContribution> contributions = userContributionRepository.findAllByUserCompanyId(companyId);
 
         Map<String, Double> contributionByCategory = contributions.stream()
@@ -145,7 +145,7 @@ public class AnalyticsService {
                 .map(e -> new DashboardResponse.ContributionEntry(e.getKey(), e.getValue()))
                 .toList();
 
-        // Energy metrics
+        // Métricas de energia
         List<EnergyMetric> energyMetrics =
                 energyMetricRepository.findAllByCompanyIdOrderByYearAscMonthAsc(companyId);
 
@@ -158,7 +158,7 @@ public class AnalyticsService {
                 ))
                 .toList();
 
-        // Training metrics
+        // Métricas de treinamento
         List<TrainingMetric> trainingMetrics =
                 trainingMetricRepository.findAllByCompanyIdOrderByYearAscQuarterAsc(companyId);
 
