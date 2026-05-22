@@ -1,37 +1,45 @@
 # ESG EcoAl API
 
-REST API for the EcoAL Android app, enabling companies to track ESG goals, tasks and analytics.
+API REST para o aplicativo Android EcoAL, permitindo que empresas acompanhem metas ESG, tarefas e métricas de desempenho.
 
-## Tech Stack
+## Tecnologias
 
-- Java 21
-- Spring Boot 3.3.4
-- Spring Security + JWT
-- Spring Data JPA + Flyway
-- Oracle Database 23ai Free
-- Docker / Docker Compose
+| Dependência | Versão | Finalidade |
+|---|---|---|
+| Java | 21 | Linguagem principal |
+| Spring Boot | 3.3.4 | Framework base da aplicação |
+| Spring Boot Web | — | Exposição de endpoints REST |
+| Spring Boot Security | — | Autenticação e autorização |
+| Spring Boot Data JPA | — | Mapeamento objeto-relacional (ORM) |
+| Spring Boot Validation | — | Validação de entrada de dados (`@NotBlank`, `@Email`, etc.) |
+| Flyway | — | Migrations de banco de dados |
+| Oracle JDBC (ojdbc11) | 23.5.0.24.07 | Driver de conexão com Oracle Database 23ai |
+| JJWT | 0.12.6 | Geração e validação de tokens JWT |
+| Lombok | — | Redução de boilerplate com anotações (`@Data`, `@Getter`, etc.) |
+| SpringDoc OpenAPI | 2.6.0 | Documentação automática da API via Swagger UI |
+| Docker / Docker Compose | — | Containerização e ambiente local |
 
-## Quick Start (Docker — recommended)
+## Inicialização Rápida (Docker — recomendado)
 
 ```bash
 docker compose up --build
 ```
 
-API available at http://localhost:8080  
-Swagger UI at http://localhost:8080/swagger-ui.html
+API disponível em http://localhost:8080  
+Swagger UI em http://localhost:8080/swagger-ui.html
 
-**Default seed credentials:**
+**Credenciais do seed padrão:**
 
-| Email | Password | Role |
+| E-mail | Senha | Perfil |
 |---|---|---|
 | alice@example.com | password | admin |
 | bob@example.com | password | user |
 
-## Local Development
+## Desenvolvimento Local
 
-**Prerequisites:** Java 21, Maven 3.9+, Oracle Database 23ai Free
+**Pré-requisitos:** Java 21, Maven 3.9+, Oracle Database 23ai Free
 
-The easiest way to run Oracle locally is via Docker:
+A forma mais simples de rodar o Oracle localmente é via Docker:
 
 ```bash
 docker run -d --name oracle-local \
@@ -42,7 +50,7 @@ docker run -d --name oracle-local \
   gvenzl/oracle-free:23-slim
 ```
 
-1. Set environment variables (or rely on defaults):
+1. Configure as variáveis de ambiente (ou use os valores padrão):
    ```bash
    export DB_URL=jdbc:oracle:thin:@localhost:1521/FREEPDB1
    export DB_USER=ecoal
@@ -50,115 +58,115 @@ docker run -d --name oracle-local \
    export JWT_SECRET=your-secret
    ```
 
-3. Run the application:
+2. Execute a aplicação:
    ```bash
    mvn spring-boot:run
    ```
 
-## Environment Variables
+## Variáveis de Ambiente
 
-| Variable | Default | Description |
+| Variável | Padrão | Descrição |
 |---|---|---|
-| DB_URL | jdbc:oracle:thin:@localhost:1521/FREEPDB1 | Oracle JDBC URL |
-| DB_USER | ecoal | DB username |
-| DB_PASSWORD | ecoal | DB password |
-| JWT_SECRET | ecoal-dev-secret-key-... | JWT signing secret (min 256 bits for HS256) |
-| SPRING_PROFILES_ACTIVE | (none) | Set to `docker` when running in container |
+| DB_URL | jdbc:oracle:thin:@localhost:1521/FREEPDB1 | URL JDBC do Oracle |
+| DB_USER | ecoal | Usuário do banco de dados |
+| DB_PASSWORD | ecoal | Senha do banco de dados |
+| JWT_SECRET | ecoal-dev-secret-key-... | Chave de assinatura JWT (mínimo 256 bits para HS256) |
+| SPRING_PROFILES_ACTIVE | (nenhum) | Definir como `docker` ao rodar em container |
 
-## Routes
+## Rotas
 
-### Auth
+### Autenticação
 
-| Method | Path | Auth | Description |
+| Método | Caminho | Auth | Descrição |
 |---|---|---|---|
-| POST | /api/auth/sign-up | Public | Register user (company must exist via seed) |
-| POST | /api/auth/sign-in | Public | Login, returns JWT |
-| GET | /api/auth/me | Bearer | Get current user |
+| POST | /api/auth/sign-up | Público | Cadastra usuário (empresa deve existir via seed) |
+| POST | /api/auth/sign-in | Público | Login, retorna JWT |
+| GET | /api/auth/me | Bearer | Retorna o usuário autenticado |
 
-### Companies
+### Empresas
 
-| Method | Path | Auth | Description |
+| Método | Caminho | Auth | Descrição |
 |---|---|---|---|
-| POST | /api/companies | Bearer | Create company |
-| GET | /api/companies/:id | Bearer | Get company (tenant-scoped) |
-| PUT | /api/companies/:id | Bearer | Update company |
-| DELETE | /api/companies/:id | Bearer | Delete company |
+| POST | /api/companies | Bearer | Cria empresa |
+| GET | /api/companies/:id | Bearer | Busca empresa (escopo por tenant) |
+| PUT | /api/companies/:id | Bearer | Atualiza empresa |
+| DELETE | /api/companies/:id | Bearer | Remove empresa |
 
-### Goals
+### Metas
 
-| Method | Path | Auth | Description |
+| Método | Caminho | Auth | Descrição |
 |---|---|---|---|
-| GET | /api/goals | Bearer | List goals (filters: dimension, created_at) |
-| POST | /api/goals | Bearer | Create goal (max 10 per dimension) |
-| GET | /api/goals/:id | Bearer | Get goal with tasks |
-| PUT | /api/goals/:id | Bearer | Update goal |
-| DELETE | /api/goals/:id | Bearer | Delete goal |
+| GET | /api/goals | Bearer | Lista metas (filtros: dimension, created_at) |
+| POST | /api/goals | Bearer | Cria meta (máx. 10 por dimensão) |
+| GET | /api/goals/:id | Bearer | Busca meta com tarefas |
+| PUT | /api/goals/:id | Bearer | Atualiza meta |
+| DELETE | /api/goals/:id | Bearer | Remove meta |
 
-### Tasks
+### Tarefas
 
-| Method | Path | Auth | Description |
+| Método | Caminho | Auth | Descrição |
 |---|---|---|---|
-| GET | /api/goals/:goalId/tasks | Bearer | List tasks (filters: completed, created_at) |
-| POST | /api/goals/:goalId/tasks | Bearer | Create task (max 10 per goal) |
-| GET | /api/goals/:goalId/tasks/:id | Bearer | Get task |
-| PUT | /api/goals/:goalId/tasks/:id | Bearer | Update task |
-| DELETE | /api/goals/:goalId/tasks/:id | Bearer | Delete task |
+| GET | /api/goals/:goalId/tasks | Bearer | Lista tarefas (filtros: completed, created_at) |
+| POST | /api/goals/:goalId/tasks | Bearer | Cria tarefa (máx. 10 por meta) |
+| GET | /api/goals/:goalId/tasks/:id | Bearer | Busca tarefa |
+| PUT | /api/goals/:goalId/tasks/:id | Bearer | Atualiza tarefa |
+| DELETE | /api/goals/:goalId/tasks/:id | Bearer | Remove tarefa |
 
-### Analytics
+### Analíticos
 
-| Method | Path | Auth | Description |
+| Método | Caminho | Auth | Descrição |
 |---|---|---|---|
-| GET | /api/analytics/dimensions | Bearer | ESG dimension progress (period: monthly\|quarterly\|annual) |
-| GET | /api/analytics/score | Bearer | Company score |
-| GET | /api/analytics/dashboard | Bearer | Dashboard (departments, contributions, energy, training) |
+| GET | /api/analytics/dimensions | Bearer | Progresso por dimensão ESG (period: monthly\|quarterly\|annual) |
+| GET | /api/analytics/score | Bearer | Score da empresa |
+| GET | /api/analytics/dashboard | Bearer | Dashboard (departamentos, contribuições, energia, treinamento) |
 
-## Entity Schemas
+## Schemas das Entidades
 
 ### Company
 
-| Field | Type | Description |
+| Campo | Tipo | Descrição |
 |---|---|---|
-| id | Long | Auto-generated |
-| name | String | Company name |
-| cnpj | String | Unique identifier |
-| global_score_goal | Double | Target score (default: 100) |
+| id | Long | Gerado automaticamente |
+| name | String | Nome da empresa |
+| cnpj | String | Identificador único |
+| global_score_goal | Double | Meta de score global (padrão: 100) |
 
 ### User
 
-| Field | Type | Description |
+| Campo | Tipo | Descrição |
 |---|---|---|
-| id | Long | Auto-generated |
-| name | String | Full name |
-| email | String | Unique |
-| role | String | User role (admin, user, etc.) |
-| company_id | Long | FK to companies |
-| department | String | Department name |
+| id | Long | Gerado automaticamente |
+| name | String | Nome completo |
+| email | String | Único |
+| role | String | Perfil do usuário (admin, user, etc.) |
+| company_id | Long | FK para companies |
+| department | String | Nome do departamento |
 
 ### Goal
 
-| Field | Type | Description |
+| Campo | Tipo | Descrição |
 |---|---|---|
-| id | Long | Auto-generated |
-| title | String | Goal title |
-| description | String | Optional |
+| id | Long | Gerado automaticamente |
+| title | String | Título da meta |
+| description | String | Opcional |
 | dimension | String | environmental, social, governance |
-| company_id | Long | FK to companies |
+| company_id | Long | FK para companies |
 
 ### Task
 
-| Field | Type | Description |
+| Campo | Tipo | Descrição |
 |---|---|---|
-| id | Long | Auto-generated |
-| title | String | Task title |
-| description | String | Optional |
-| score | Double | Score value (default: 0) |
-| completed | Boolean | Completion status |
-| completed_at | Timestamp | Set automatically on completion |
-| goal_id | Long | FK to goals |
+| id | Long | Gerado automaticamente |
+| title | String | Título da tarefa |
+| description | String | Opcional |
+| score | Double | Valor de pontuação (padrão: 0) |
+| completed | Boolean | Status de conclusão |
+| completed_at | Timestamp | Definido automaticamente ao concluir |
+| goal_id | Long | FK para goals |
 
-## Business Rules
+## Regras de Negócio
 
-- Max 10 goals per ESG dimension per company
-- Max 10 tasks per goal
-- All data is tenant-scoped by company (multi-tenant)
-- Task `completed_at` is set automatically when `completed` transitions to true
+- Máximo de 10 metas por dimensão ESG por empresa
+- Máximo de 10 tarefas por meta
+- Todos os dados são isolados por empresa (multi-tenant)
+- O campo `completed_at` é definido automaticamente quando `completed` passa para `true`
