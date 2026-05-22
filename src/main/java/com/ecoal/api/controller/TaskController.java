@@ -4,6 +4,7 @@ import com.ecoal.api.dto.task.TaskRequest;
 import com.ecoal.api.dto.task.TaskResponse;
 import com.ecoal.api.service.TaskService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,11 +24,8 @@ import java.util.List;
 @RequestMapping("/api/goals/{goalId}/tasks")
 public class TaskController {
 
-    private final TaskService taskService;
-
-    public TaskController(TaskService taskService) {
-        this.taskService = taskService;
-    }
+    @Autowired
+    private TaskService taskService;
 
     @GetMapping
     public ResponseEntity<List<TaskResponse>> list(

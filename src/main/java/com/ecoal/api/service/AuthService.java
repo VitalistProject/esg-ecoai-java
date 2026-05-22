@@ -13,6 +13,7 @@ import com.ecoal.api.repository.UserAccountRepository;
 import com.ecoal.api.security.AppUserDetails;
 import com.ecoal.api.security.CurrentUserProvider;
 import com.ecoal.api.security.JwtService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,21 +21,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthService {
 
-    private final CompanyRepository companyRepository;
-    private final UserAccountRepository userAccountRepository;
-    private final JwtService jwtService;
-    private final BCryptPasswordEncoder passwordEncoder;
+    @Autowired
+    private CompanyRepository companyRepository;
 
-    public AuthService(
-            CompanyRepository companyRepository,
-            UserAccountRepository userAccountRepository,
-            JwtService jwtService,
-            BCryptPasswordEncoder passwordEncoder) {
-        this.companyRepository = companyRepository;
-        this.userAccountRepository = userAccountRepository;
-        this.jwtService = jwtService;
-        this.passwordEncoder = passwordEncoder;
-    }
+    @Autowired
+    private UserAccountRepository userAccountRepository;
+
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     public AuthResponse signUp(SignUpRequest request) {
         Company company = companyRepository.findByCnpj(request.getCompanyCnpj())

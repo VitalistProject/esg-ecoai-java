@@ -12,6 +12,8 @@ import com.ecoal.api.exception.NotFoundException;
 import com.ecoal.api.repository.CompanyRepository;
 import com.ecoal.api.repository.GoalRepository;
 import com.ecoal.api.security.CurrentUserProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -19,18 +21,14 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 
-import org.springframework.data.domain.Sort;
-
 @Service
 public class GoalService {
 
-    private final GoalRepository goalRepository;
-    private final CompanyRepository companyRepository;
+    @Autowired
+    private GoalRepository goalRepository;
 
-    public GoalService(GoalRepository goalRepository, CompanyRepository companyRepository) {
-        this.goalRepository = goalRepository;
-        this.companyRepository = companyRepository;
-    }
+    @Autowired
+    private CompanyRepository companyRepository;
 
     public List<GoalResponse> list(Dimension dimension, LocalDate createdAt) {
         Long companyId = CurrentUserProvider.get().getCompanyId();

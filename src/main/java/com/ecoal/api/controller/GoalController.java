@@ -5,6 +5,7 @@ import com.ecoal.api.dto.goal.GoalResponse;
 import com.ecoal.api.entity.Dimension;
 import com.ecoal.api.service.GoalService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,11 +25,8 @@ import java.util.List;
 @RequestMapping("/api/goals")
 public class GoalController {
 
-    private final GoalService goalService;
-
-    public GoalController(GoalService goalService) {
-        this.goalService = goalService;
-    }
+    @Autowired
+    private GoalService goalService;
 
     @GetMapping
     public ResponseEntity<List<GoalResponse>> list(

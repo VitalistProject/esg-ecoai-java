@@ -19,14 +19,14 @@ import com.ecoal.api.repository.TrainingMetricRepository;
 import com.ecoal.api.repository.UserAccountRepository;
 import com.ecoal.api.repository.UserContributionRepository;
 import com.ecoal.api.security.CurrentUserProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-
-import org.springframework.data.domain.Sort;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -34,30 +34,26 @@ import java.util.stream.Collectors;
 @Service
 public class AnalyticsService {
 
-    private final GoalRepository goalRepository;
-    private final TaskRepository taskRepository;
-    private final CompanyRepository companyRepository;
-    private final UserAccountRepository userAccountRepository;
-    private final UserContributionRepository userContributionRepository;
-    private final EnergyMetricRepository energyMetricRepository;
-    private final TrainingMetricRepository trainingMetricRepository;
+    @Autowired
+    private GoalRepository goalRepository;
 
-    public AnalyticsService(
-            GoalRepository goalRepository,
-            TaskRepository taskRepository,
-            CompanyRepository companyRepository,
-            UserAccountRepository userAccountRepository,
-            UserContributionRepository userContributionRepository,
-            EnergyMetricRepository energyMetricRepository,
-            TrainingMetricRepository trainingMetricRepository) {
-        this.goalRepository = goalRepository;
-        this.taskRepository = taskRepository;
-        this.companyRepository = companyRepository;
-        this.userAccountRepository = userAccountRepository;
-        this.userContributionRepository = userContributionRepository;
-        this.energyMetricRepository = energyMetricRepository;
-        this.trainingMetricRepository = trainingMetricRepository;
-    }
+    @Autowired
+    private TaskRepository taskRepository;
+
+    @Autowired
+    private CompanyRepository companyRepository;
+
+    @Autowired
+    private UserAccountRepository userAccountRepository;
+
+    @Autowired
+    private UserContributionRepository userContributionRepository;
+
+    @Autowired
+    private EnergyMetricRepository energyMetricRepository;
+
+    @Autowired
+    private TrainingMetricRepository trainingMetricRepository;
 
     public DimensionProgressResponse dimensions(String period) {
         Long companyId = CurrentUserProvider.get().getCompanyId();

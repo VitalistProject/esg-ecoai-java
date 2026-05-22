@@ -6,6 +6,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -15,11 +16,8 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    private final JwtProperties props;
-
-    public JwtService(JwtProperties props) {
-        this.props = props;
-    }
+    @Autowired
+    private JwtProperties props;
 
     private SecretKey key() {
         byte[] bytes = props.getSecret().getBytes(StandardCharsets.UTF_8);

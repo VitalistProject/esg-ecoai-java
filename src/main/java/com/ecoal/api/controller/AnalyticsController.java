@@ -4,6 +4,7 @@ import com.ecoal.api.dto.analytics.DashboardResponse;
 import com.ecoal.api.dto.analytics.DimensionProgressResponse;
 import com.ecoal.api.dto.analytics.ScoreResponse;
 import com.ecoal.api.service.AnalyticsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,11 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/analytics")
 public class AnalyticsController {
 
-    private final AnalyticsService analyticsService;
-
-    public AnalyticsController(AnalyticsService analyticsService) {
-        this.analyticsService = analyticsService;
-    }
+    @Autowired
+    private AnalyticsService analyticsService;
 
     @GetMapping("/dimensions")
     public ResponseEntity<DimensionProgressResponse> dimensions(

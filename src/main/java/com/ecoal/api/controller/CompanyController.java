@@ -4,6 +4,7 @@ import com.ecoal.api.dto.company.CompanyRequest;
 import com.ecoal.api.dto.company.CompanyResponse;
 import com.ecoal.api.service.CompanyService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,11 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/companies")
 public class CompanyController {
 
-    private final CompanyService companyService;
-
-    public CompanyController(CompanyService companyService) {
-        this.companyService = companyService;
-    }
+    @Autowired
+    private CompanyService companyService;
 
     @PostMapping
     public ResponseEntity<CompanyResponse> create(@Valid @RequestBody CompanyRequest request) {
