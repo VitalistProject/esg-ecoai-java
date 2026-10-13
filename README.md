@@ -34,6 +34,7 @@
 
    - API: http://localhost:8080
    - Swagger UI: http://localhost:8080/swagger-ui.html
+   - Health check: http://localhost:8080/actuator/health (público; retorna `{"status":"UP"}` quando a aplicação e o banco estão acessíveis, e `503` caso contrário)
 
 4. Para encerrar (mantendo os dados) ou apagar também o volume do banco:
 
