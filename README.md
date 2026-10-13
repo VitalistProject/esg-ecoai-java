@@ -13,7 +13,7 @@ API REST para o aplicativo Android EcoAL, permitindo que empresas acompanhem met
 | Spring Boot Data JPA | — | Mapeamento objeto-relacional (ORM) |
 | Spring Boot Validation | — | Validação de entrada de dados (`@NotBlank`, `@Email`, etc.) |
 | Flyway | — | Migrations de banco de dados |
-| Oracle JDBC (ojdbc11) | 23.5.0.24.07 | Driver de conexão com Oracle Database 23ai |
+| PostgreSQL JDBC | — | Driver de conexão com PostgreSQL 16 |
 | JJWT | 0.12.6 | Geração e validação de tokens JWT |
 | Lombok | — | Redução de boilerplate com anotações (`@Data`, `@Getter`, etc.) |
 | SpringDoc OpenAPI | 2.6.0 | Documentação automática da API via Swagger UI |
@@ -38,17 +38,17 @@ Swagger UI em http://localhost:8080/swagger-ui.html
 
 ## Desenvolvimento Local
 
-**Pré-requisitos:** Java 21, Maven 3.9+, Oracle Database 23ai Free
+**Pré-requisitos:** Java 21, Maven 3.9+, PostgreSQL 16
 
-A forma mais simples de rodar o Oracle localmente é via Docker:
+A forma mais simples de rodar o PostgreSQL localmente é via Docker:
 
 ```bash
-docker run -d --name oracle-local \
-  -e ORACLE_PASSWORD=ecoal \
-  -e APP_USER=ecoal \
-  -e APP_USER_PASSWORD=ecoal \
-  -p 1521:1521 \
-  gvenzl/oracle-free:23-slim
+docker run -d --name postgres-local \
+  -e POSTGRES_DB=ecoal \
+  -e POSTGRES_USER=ecoal \
+  -e POSTGRES_PASSWORD=ecoal \
+  -p 5432:5432 \
+  postgres:16-alpine
 ```
 
 1. Crie o arquivo `.env` a partir do exemplo e preencha os valores (a aplicação o lê automaticamente da raiz do projeto):
@@ -67,7 +67,7 @@ docker run -d --name oracle-local \
 mvn test
 ```
 
-Os testes de integração sobem um Oracle Database Free descartável via Testcontainers (imagem `gvenzl/oracle-free:23-slim-faststart`) e aplicam as migrations Flyway reais, então **o Docker precisa estar em execução**. Não é necessário `.env` nem um banco local: o banco e o segredo JWT dos testes são configurados automaticamente. A primeira execução baixa a imagem do Oracle; o container é criado uma única vez por execução e compartilhado por todos os testes.
+Os testes de integração sobem um PostgreSQL descartável via Testcontainers (imagem `postgres:16-alpine`) e aplicam as migrations Flyway reais, então **o Docker precisa estar em execução**. Não é necessário `.env` nem um banco local: o banco e o segredo JWT dos testes são configurados automaticamente. A primeira execução baixa a imagem do PostgreSQL; o container é criado uma única vez por execução e compartilhado por todos os testes.
 
 | Camada | Classes | O que cobre |
 |---|---|---|
@@ -77,16 +77,28 @@ Os testes de integração sobem um Oracle Database Free descartável via Testcon
 
 ## Variáveis de Ambiente
 
-Definidas no arquivo `.env` (não versionado; modelo em `.env.example`). `DB_PASSWORD` e `JWT_SECRET` não têm valor padrão e precisam ser definidas. Sem `JWT_SECRET` (ou com menos de 32 caracteres) a aplicação aborta a subida com uma mensagem explícita; sem `DB_PASSWORD` ela falha ao conectar no banco (ORA-01017).
+Definidas no arquivo `.env` (não versionado; modelo em `.env.example`). `DB_PASSWORD` e `JWT_SECRET` não têm valor padrão e precisam ser definidas. Sem `JWT_SECRET` (ou com menos de 32 caracteres) a aplicação aborta a subida com uma mensagem explícita; sem `DB_PASSWORD` ela falha ao conectar no banco (autenticação recusada).
 
 | Variável | Padrão | Descrição |
 |---|---|---|
-| DB_URL | jdbc:oracle:thin:@localhost:1521/FREEPDB1 | URL JDBC do Oracle |
+| DB_URL | jdbc:postgresql://localhost:5432/ecoal | URL JDBC do PostgreSQL |
 | DB_USER | ecoal | Usuário do banco de dados |
 | DB_PASSWORD | (obrigatória) | Senha do banco de dados |
-| ORACLE_PASSWORD | (obrigatória no Compose) | Senha do SYS/SYSTEM do container Oracle |
 | JWT_SECRET | (obrigatória) | Chave de assinatura JWT (mínimo 256 bits para HS256) |
 | SPRING_PROFILES_ACTIVE | (nenhum) | Definir como `docker` ao rodar em container |
+
+## CI/CD
+
+O pipeline está em `.github/workflows/ci-cd.yml` (GitHub Actions) e tem quatro estágios:
+
+| Estágio | Quando roda | O que faz |
+|---|---|---|
+| Build | Todo push e pull request | `mvn package` sem testes |
+| Testes | Após o build | `mvn test` (Testcontainers com PostgreSQL) |
+| Deploy de staging | Push na branch `develop` | Publica a imagem Docker no GHCR (`:staging`) e faz redeploy no Railway |
+| Deploy de produção | Push na branch `main` | Mesmo fluxo (`:production`), mas exige aprovação manual no GitHub Environment `production` |
+
+O deploy está em `.github/workflows/deploy.yml`. Cada GitHub Environment (`staging` e `production`) precisa dos segredos `RAILWAY_TOKEN` (token de projeto do ambiente correspondente no Railway) e `RAILWAY_SERVICE` (nome do serviço da aplicação). No Railway, cada ambiente roda o serviço da aplicação (imagem do GHCR) e um banco PostgreSQL (serviço de banco gerenciado do Railway), configurados com as variáveis da seção anterior e `PORT=8080`.
 
 ## Rotas
 

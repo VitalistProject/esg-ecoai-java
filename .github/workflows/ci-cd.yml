@@ -1,0 +1,67 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Package
+        run: mvn -B -DskipTests package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          path: target/*.jar
+          if-no-files-found: error
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      # Integration tests start PostgreSQL via Testcontainers; the runner already provides Docker.
+      - name: Run tests
+        run: mvn -B test
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports
+
+  deploy-staging:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: staging
+
+  deploy-production:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: production

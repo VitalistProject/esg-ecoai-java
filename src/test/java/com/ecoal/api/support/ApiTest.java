@@ -10,13 +10,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * Full-stack base for API tests: real security filter chain, real JWTs, real services and a real Oracle database.
+ * Full-stack base for API tests: real security filter chain, real JWTs, real services and a real PostgreSQL database.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Import(Fixtures.class)
-public abstract class ApiTest extends OracleContainerSupport {
+public abstract class ApiTest extends PostgresContainerSupport {
 
     @Autowired
     protected MockMvc mockMvc;
