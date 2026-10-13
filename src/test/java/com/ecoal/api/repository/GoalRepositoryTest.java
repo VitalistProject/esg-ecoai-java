@@ -4,7 +4,7 @@ import com.ecoal.api.entity.Company;
 import com.ecoal.api.entity.Dimension;
 import com.ecoal.api.entity.Goal;
 import com.ecoal.api.support.Fixtures;
-import com.ecoal.api.support.OracleContainerSupport;
+import com.ecoal.api.support.PostgresContainerSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
 @Import(Fixtures.class)
-class GoalRepositoryTest extends OracleContainerSupport {
+class GoalRepositoryTest extends PostgresContainerSupport {
 
     private static final OffsetDateTime CUTOFF = OffsetDateTime.of(2026, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
 
