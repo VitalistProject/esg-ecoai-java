@@ -1,8 +1,8 @@
 name: Deploy
 
 # Reusable deploy: publishes the Docker image to GHCR and redeploys the Railway service
-# of the given environment. The GitHub Environment of the same name must define the
-# RAILWAY_TOKEN (project token for that Railway environment) and RAILWAY_SERVICE secrets.
+# of the given environment. The caller passes that environment's Railway credentials
+# (project token scoped to the Railway environment, and the app service name) as secrets.
 on:
   workflow_call:
     inputs:
@@ -10,6 +10,11 @@ on:
         description: GitHub Environment and image tag to deploy (staging or production)
         required: true
         type: string
+    secrets:
+      RAILWAY_TOKEN:
+        required: true
+      RAILWAY_SERVICE:
+        required: true
 
 jobs:
   deploy:

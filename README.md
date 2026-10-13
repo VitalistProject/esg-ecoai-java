@@ -1,33 +1,46 @@
-# ESG EcoAl API
+# Projeto - Cidades ESG Inteligentes
 
-API REST para o aplicativo Android EcoAL, permitindo que empresas acompanhem metas ESG, tarefas e métricas de desempenho.
+**ESG EcoAl API**: API REST para o aplicativo Android EcoAL, que permite às empresas acompanharem metas ESG, tarefas e métricas de desempenho.
 
-## Tecnologias
+## Como executar localmente com Docker
 
-| Dependência | Versão | Finalidade |
-|---|---|---|
-| Java | 21 | Linguagem principal |
-| Spring Boot | 3.3.4 | Framework base da aplicação |
-| Spring Boot Web | — | Exposição de endpoints REST |
-| Spring Boot Security | — | Autenticação e autorização |
-| Spring Boot Data JPA | — | Mapeamento objeto-relacional (ORM) |
-| Spring Boot Validation | — | Validação de entrada de dados (`@NotBlank`, `@Email`, etc.) |
-| Flyway | — | Migrations de banco de dados |
-| PostgreSQL JDBC | — | Driver de conexão com PostgreSQL 16 |
-| JJWT | 0.12.6 | Geração e validação de tokens JWT |
-| Lombok | — | Redução de boilerplate com anotações (`@Data`, `@Getter`, etc.) |
-| SpringDoc OpenAPI | 2.6.0 | Documentação automática da API via Swagger UI |
-| Docker / Docker Compose | — | Containerização e ambiente local |
+**Pré-requisito:** Docker com Docker Compose.
 
-## Inicialização Rápida (Docker — recomendado)
+1. Crie o arquivo `.env` a partir do modelo e preencha os valores:
 
-```bash
-cp .env.example .env   # preencha os valores
-docker compose up --build
-```
+   ```bash
+   cp .env.example .env
+   ```
 
-API disponível em http://localhost:8080  
-Swagger UI em http://localhost:8080/swagger-ui.html
+   | Variável | Padrão | Descrição |
+   |---|---|---|
+   | DB_URL | jdbc:postgresql://localhost:5432/ecoal | URL JDBC do PostgreSQL (no Compose, o perfil `docker` aponta para o serviço `db`) |
+   | DB_USER | ecoal | Usuário do banco de dados |
+   | DB_PASSWORD | (obrigatória) | Senha do banco de dados |
+   | JWT_SECRET | (obrigatória) | Chave de assinatura JWT (mínimo de 32 caracteres / 256 bits para HS256) |
+   | SPRING_PROFILES_ACTIVE | (nenhum) | Definido como `docker` automaticamente pelo `docker-compose.yml` |
+
+   `DB_PASSWORD` e `JWT_SECRET` não têm valor padrão. Sem `JWT_SECRET` (ou com menos de 32 caracteres) a aplicação aborta a subida com uma mensagem explícita. Para gerar uma chave: `openssl rand -base64 48`.
+
+2. Suba a aplicação e o banco:
+
+   ```bash
+   docker compose up --build
+   ```
+
+   O Compose sobe o PostgreSQL 16 (`ecoal-db`), espera o healthcheck do banco e só então inicia a API (`ecoal-api`). As migrations do Flyway e o seed rodam automaticamente na primeira execução.
+
+3. Acesse:
+
+   - API: http://localhost:8080
+   - Swagger UI: http://localhost:8080/swagger-ui.html
+
+4. Para encerrar (mantendo os dados) ou apagar também o volume do banco:
+
+   ```bash
+   docker compose down
+   docker compose down -v
+   ```
 
 **Credenciais do seed padrão:**
 
@@ -36,11 +49,9 @@ Swagger UI em http://localhost:8080/swagger-ui.html
 | alice@example.com | password | admin |
 | bob@example.com | password | user |
 
-## Desenvolvimento Local
+### Execução sem Docker para a API (opcional)
 
-**Pré-requisitos:** Java 21, Maven 3.9+, PostgreSQL 16
-
-A forma mais simples de rodar o PostgreSQL localmente é via Docker:
+**Pré-requisitos:** Java 21, Maven 3.9+ e um PostgreSQL 16 acessível. Para subir só o banco via Docker:
 
 ```bash
 docker run -d --name postgres-local \
@@ -51,17 +62,13 @@ docker run -d --name postgres-local \
   postgres:16-alpine
 ```
 
-1. Crie o arquivo `.env` a partir do exemplo e preencha os valores (a aplicação o lê automaticamente da raiz do projeto):
-   ```bash
-   cp .env.example .env
-   ```
+Com o `.env` criado (a aplicação o lê automaticamente da raiz do projeto), execute:
 
-2. Execute a aplicação:
-   ```bash
-   mvn spring-boot:run
-   ```
+```bash
+mvn spring-boot:run
+```
 
-## Testes
+### Testes
 
 ```bash
 mvn test
@@ -75,125 +82,93 @@ Os testes de integração sobem um PostgreSQL descartável via Testcontainers (i
 | Repositórios | `SchemaMigrationTest`, `GoalRepositoryTest`, `TaskRepositoryTest`, `UserContributionRepositoryTest` | Migrations e seed, constraints, filtros por data e isolamento por empresa |
 | API (ponta a ponta) | `AuthApiTest`, `SecurityApiTest`, `CompanyApiTest`, `GoalApiTest`, `TaskApiTest`, `AnalyticsApiTest`, `ErrorHandlingApiTest` | Rotas via MockMvc com filtro de segurança, JWT e banco reais |
 
-## Variáveis de Ambiente
+## Pipeline CI/CD
 
-Definidas no arquivo `.env` (não versionado; modelo em `.env.example`). `DB_PASSWORD` e `JWT_SECRET` não têm valor padrão e precisam ser definidas. Sem `JWT_SECRET` (ou com menos de 32 caracteres) a aplicação aborta a subida com uma mensagem explícita; sem `DB_PASSWORD` ela falha ao conectar no banco (autenticação recusada).
+### Ferramentas
 
-| Variável | Padrão | Descrição |
-|---|---|---|
-| DB_URL | jdbc:postgresql://localhost:5432/ecoal | URL JDBC do PostgreSQL |
-| DB_USER | ecoal | Usuário do banco de dados |
-| DB_PASSWORD | (obrigatória) | Senha do banco de dados |
-| JWT_SECRET | (obrigatória) | Chave de assinatura JWT (mínimo 256 bits para HS256) |
-| SPRING_PROFILES_ACTIVE | (nenhum) | Definir como `docker` ao rodar em container |
+| Ferramenta | Uso |
+|---|---|
+| GitHub Actions | Orquestra o pipeline (`.github/workflows/ci-cd.yml`) e o deploy reutilizável (`.github/workflows/deploy.yml`) |
+| Maven + Temurin JDK 21 | Compilação, empacotamento e testes |
+| Testcontainers | PostgreSQL descartável nos testes de integração (o runner já fornece Docker) |
+| Docker Buildx | Build da imagem com cache de camadas no GitHub Actions |
+| GitHub Container Registry (GHCR) | Registro das imagens Docker (`ghcr.io/<owner>/<repo>`) |
+| Railway | Hospedagem de staging e produção (serviço da aplicação + PostgreSQL gerenciado) |
+| GitHub Actions Secrets | Credenciais do Railway por ambiente (segredos de repositório) |
 
-## CI/CD
-
-O pipeline está em `.github/workflows/ci-cd.yml` (GitHub Actions) e tem quatro estágios:
+### Etapas
 
 | Estágio | Quando roda | O que faz |
 |---|---|---|
-| Build | Todo push e pull request | `mvn package` sem testes |
-| Testes | Após o build | `mvn test` (Testcontainers com PostgreSQL) |
-| Deploy de staging | Push na branch `develop` | Publica a imagem Docker no GHCR (`:staging`) e faz redeploy no Railway |
-| Deploy de produção | Push na branch `main` | Mesmo fluxo (`:production`), mas exige aprovação manual no GitHub Environment `production` |
+| Build | Todo push (`main`, `develop`) e todo pull request | `mvn package` sem testes e upload do JAR como artefato |
+| Testes | Após o build | `mvn test` (Testcontainers com PostgreSQL); em caso de falha, publica os relatórios do Surefire |
+| Deploy de staging | Push na branch `develop` | Publica a imagem no GHCR (`:staging` e `:sha`) e faz redeploy no Railway |
+| Deploy de produção | Push na branch `main` | Mesmo fluxo (`:production` e `:sha`), automático após build e testes passarem (sem aprovação manual) |
 
-O deploy está em `.github/workflows/deploy.yml`. Cada GitHub Environment (`staging` e `production`) precisa dos segredos `RAILWAY_TOKEN` (token de projeto do ambiente correspondente no Railway) e `RAILWAY_SERVICE` (nome do serviço da aplicação). No Railway, cada ambiente roda o serviço da aplicação (imagem do GHCR) e um banco PostgreSQL (serviço de banco gerenciado do Railway), configurados com as variáveis da seção anterior e `PORT=8080`.
+### Funcionamento
 
-## Rotas
+1. Pull requests executam apenas **build** e **testes**, funcionando como porta de qualidade antes do merge.
+2. Um push em `develop` ou `main` executa build e testes e, se passarem, chama o workflow reutilizável `deploy.yml` com o ambiente correspondente.
+3. O `deploy.yml` autentica no GHCR com o `GITHUB_TOKEN`, constrói a imagem a partir do `Dockerfile` (`linux/amd64`, com cache `type=gha`), publica as tags e executa `railway redeploy` no serviço do ambiente. Execuções do mesmo ambiente são serializadas (`concurrency`) e nunca canceladas no meio de um deploy.
+4. O repositório precisa dos segredos `STAGING_RAILWAY_TOKEN` e `PRODUCTION_RAILWAY_TOKEN` (token de projeto do ambiente correspondente no Railway) e `STAGING_RAILWAY_SERVICE` e `PRODUCTION_RAILWAY_SERVICE` (nome do serviço da aplicação em cada ambiente). Segredos de GitHub Environment e a aprovação manual da produção não estão disponíveis em repositórios privados no plano Free. No Railway, cada ambiente roda o serviço da aplicação (imagem do GHCR) e um banco PostgreSQL gerenciado, configurados com as variáveis de ambiente da seção anterior e `PORT=8080`.
 
-### Autenticação
+## Containerização
 
-| Método | Caminho | Auth | Descrição |
-|---|---|---|---|
-| POST | /api/auth/sign-up | Público | Cadastra usuário (empresa deve existir via seed) |
-| POST | /api/auth/sign-in | Público | Login, retorna JWT |
-| GET | /api/auth/me | Bearer | Retorna o usuário autenticado |
+### Dockerfile
 
-### Empresas
+```dockerfile
+# Stage 1: Build
+FROM maven:3.9-eclipse-temurin-21 AS build
+WORKDIR /workspace
 
-| Método | Caminho | Auth | Descrição |
-|---|---|---|---|
-| POST | /api/companies | Bearer | Cria empresa |
-| GET | /api/companies/:id | Bearer | Busca empresa (escopo por tenant) |
-| PUT | /api/companies/:id | Bearer | Atualiza empresa |
-| DELETE | /api/companies/:id | Bearer | Remove empresa |
+COPY pom.xml .
+RUN mvn -B dependency:go-offline
 
-### Metas
+COPY src ./src
+RUN mvn -B -DskipTests package
 
-| Método | Caminho | Auth | Descrição |
-|---|---|---|---|
-| GET | /api/goals | Bearer | Lista metas (filtros: dimension, created_at) |
-| POST | /api/goals | Bearer | Cria meta (máx. 10 por dimensão) |
-| GET | /api/goals/:id | Bearer | Busca meta com tarefas |
-| PUT | /api/goals/:id | Bearer | Atualiza meta |
-| DELETE | /api/goals/:id | Bearer | Remove meta |
+# Stage 2: Run
+FROM eclipse-temurin:21-jre
+WORKDIR /app
 
-### Tarefas
+COPY --from=build /workspace/target/*.jar app.jar
 
-| Método | Caminho | Auth | Descrição |
-|---|---|---|---|
-| GET | /api/goals/:goalId/tasks | Bearer | Lista tarefas (filtros: completed, created_at) |
-| POST | /api/goals/:goalId/tasks | Bearer | Cria tarefa (máx. 10 por meta) |
-| GET | /api/goals/:goalId/tasks/:id | Bearer | Busca tarefa |
-| PUT | /api/goals/:goalId/tasks/:id | Bearer | Atualiza tarefa |
-| DELETE | /api/goals/:goalId/tasks/:id | Bearer | Remove tarefa |
+EXPOSE 8080
 
-### Analíticos
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+```
 
-| Método | Caminho | Auth | Descrição |
-|---|---|---|---|
-| GET | /api/analytics/dimensions | Bearer | Progresso por dimensão ESG (period: monthly\|quarterly\|annual) |
-| GET | /api/analytics/score | Bearer | Score da empresa |
-| GET | /api/analytics/dashboard | Bearer | Dashboard (departamentos, contribuições, energia, treinamento) |
+### Estratégias adotadas
 
-## Schemas das Entidades
+- **Multi-stage build:** o Maven e o JDK completo existem apenas no estágio de build; a imagem final contém só o JRE 21 e o JAR, o que reduz o tamanho e a superfície de ataque.
+- **Cache de dependências:** o `pom.xml` é copiado e as dependências são baixadas (`dependency:go-offline`) antes do código-fonte, então alterações em `src` não invalidam a camada de dependências.
+- **Contexto enxuto:** o `.dockerignore` exclui `target/`, `.git/`, arquivos de IDE, `README.md` e o `.env`, evitando vazar segredos para a imagem e invalidar o cache à toa.
+- **Configuração fora da imagem:** senhas e `JWT_SECRET` são injetados por variáveis de ambiente (Compose localmente, Railway em staging/produção); nada sensível é gravado na imagem.
+- **Docker Compose com healthcheck:** o serviço `app` só inicia quando o `pg_isready` do `db` passa (`depends_on` com `service_healthy`), e usa `restart: on-failure`. Os dados do banco ficam no volume nomeado `ecoal_data`.
+- **Perfil `docker`:** `SPRING_PROFILES_ACTIVE=docker` troca a URL do banco para o serviço `db` da rede do Compose.
+- **Imagens rastreáveis:** no CI, cada imagem recebe a tag do ambiente (`staging` ou `production`) e a tag do commit (`sha`).
 
-### Company
+## Prints do funcionamento
 
-| Campo | Tipo | Descrição |
+> **Pendente:** preencher com as evidências reais (prints em `docs/prints/` ou links) e as URLs dos ambientes, que não estão registradas no repositório.
+
+## Tecnologias utilizadas
+
+| Tecnologia | Versão | Finalidade |
 |---|---|---|
-| id | Long | Gerado automaticamente |
-| name | String | Nome da empresa |
-| cnpj | String | Identificador único |
-| global_score_goal | Double | Meta de score global (padrão: 100) |
-
-### User
-
-| Campo | Tipo | Descrição |
-|---|---|---|
-| id | Long | Gerado automaticamente |
-| name | String | Nome completo |
-| email | String | Único |
-| role | String | Perfil do usuário (admin, user, etc.) |
-| company_id | Long | FK para companies |
-| department | String | Nome do departamento |
-
-### Goal
-
-| Campo | Tipo | Descrição |
-|---|---|---|
-| id | Long | Gerado automaticamente |
-| title | String | Título da meta |
-| description | String | Opcional |
-| dimension | String | environmental, social, governance |
-| company_id | Long | FK para companies |
-
-### Task
-
-| Campo | Tipo | Descrição |
-|---|---|---|
-| id | Long | Gerado automaticamente |
-| title | String | Título da tarefa |
-| description | String | Opcional |
-| score | Double | Valor de pontuação (padrão: 0) |
-| completed | Boolean | Status de conclusão |
-| completed_at | Timestamp | Definido automaticamente ao concluir |
-| goal_id | Long | FK para goals |
-
-## Regras de Negócio
-
-- Máximo de 10 metas por dimensão ESG por empresa
-- Máximo de 10 tarefas por meta
-- Todos os dados são isolados por empresa (multi-tenant)
-- O campo `completed_at` é definido automaticamente quando `completed` passa para `true`
+| Java | 21 | Linguagem principal |
+| Spring Boot | 3.3.4 | Framework base da aplicação |
+| Spring Boot Web | — | Exposição de endpoints REST |
+| Spring Boot Security | — | Autenticação e autorização |
+| Spring Boot Data JPA | — | Mapeamento objeto-relacional (ORM) |
+| Spring Boot Validation | — | Validação de entrada de dados (`@NotBlank`, `@Email`, etc.) |
+| Flyway | — | Migrations de banco de dados |
+| PostgreSQL | 16 | Banco de dados relacional (driver JDBC incluso) |
+| JJWT | 0.12.6 | Geração e validação de tokens JWT |
+| Lombok | — | Redução de boilerplate com anotações (`@Data`, `@Getter`, etc.) |
+| SpringDoc OpenAPI | 2.6.0 | Documentação automática da API via Swagger UI |
+| JUnit 5, MockMvc e Testcontainers | — | Testes unitários, de API e de integração com banco real |
+| Maven | 3.9+ | Build e gerenciamento de dependências |
+| Docker / Docker Compose | — | Containerização e ambiente local |
+| GitHub Actions e GHCR | — | CI/CD e registro de imagens |
+| Railway | — | Hospedagem de staging e produção |
