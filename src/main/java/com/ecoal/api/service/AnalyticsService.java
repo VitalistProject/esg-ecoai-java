@@ -24,10 +24,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -141,18 +144,7 @@ public class AnalyticsService {
                 .map(e -> new DashboardResponse.ContributionEntry(e.getKey(), e.getValue()))
                 .toList();
 
-        // Métricas de energia
-        List<EnergyMetric> energyMetrics =
-                energyMetricRepository.findAllByCompanyIdOrderByYearAscMonthAsc(companyId);
-
-        List<DashboardResponse.EnergyEntry> energyEntries = energyMetrics.stream()
-                .map(em -> new DashboardResponse.EnergyEntry(
-                        em.getMonth(),
-                        em.getYear() != null ? em.getYear() : 0,
-                        em.getRealizedValue() != null ? em.getRealizedValue() : 0.0,
-                        em.getGoalValue() != null ? em.getGoalValue() : 0.0
-                ))
-                .toList();
+        List<DashboardResponse.EnergyEntry> energyEntries = energyEntries(companyId);
 
         // Métricas de treinamento
         List<TrainingMetric> trainingMetrics =
@@ -167,5 +159,32 @@ public class AnalyticsService {
                 .toList();
 
         return new DashboardResponse(departments, contributionEntries, energyEntries, trainingEntries);
+    }
+
+    private List<DashboardResponse.EnergyEntry> energyEntries(Long companyId) {
+        return energyMetricRepository.findAllByCompanyIdOrderByYearAscMonthAsc(companyId)
+                .stream()
+                .sorted(Comparator.comparingInt((EnergyMetric em) -> em.getYear() != null ? em.getYear() : 0)
+                        .thenComparingInt(em -> monthOrder(em.getMonth())))
+                .map(em -> new DashboardResponse.EnergyEntry(
+                        em.getMonth(),
+                        em.getYear() != null ? em.getYear() : 0,
+                        em.getRealizedValue() != null ? em.getRealizedValue() : 0.0,
+                        em.getGoalValue() != null ? em.getGoalValue() : 0.0
+                ))
+                .toList();
+    }
+
+    /** Months are stored as English names; unknown names sort after December, keeping the repository's order. */
+    private int monthOrder(String month) {
+        int unknown = Month.DECEMBER.getValue() + 1;
+        if (month == null) {
+            return unknown;
+        }
+        try {
+            return Month.valueOf(month.toUpperCase(Locale.ROOT)).getValue();
+        } catch (IllegalArgumentException e) {
+            return unknown;
+        }
     }
 }

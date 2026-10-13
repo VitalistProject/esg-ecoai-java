@@ -61,6 +61,20 @@ docker run -d --name oracle-local \
    mvn spring-boot:run
    ```
 
+## Testes
+
+```bash
+mvn test
+```
+
+Os testes de integração sobem um Oracle Database Free descartável via Testcontainers (imagem `gvenzl/oracle-free:23-slim-faststart`) e aplicam as migrations Flyway reais, então **o Docker precisa estar em execução**. Não é necessário `.env` nem um banco local: o banco e o segredo JWT dos testes são configurados automaticamente. A primeira execução baixa a imagem do Oracle; o container é criado uma única vez por execução e compartilhado por todos os testes.
+
+| Camada | Classes | O que cobre |
+|---|---|---|
+| Unitários | `DimensionTest`, `JwtServiceTest`, `AppUserDetailsTest`, `JwtPropertiesTest` | Conversão de dimensão, emissão/validação de JWT, autoridades e validação de configuração |
+| Repositórios | `SchemaMigrationTest`, `GoalRepositoryTest`, `TaskRepositoryTest`, `UserContributionRepositoryTest` | Migrations e seed, constraints, filtros por data e isolamento por empresa |
+| API (ponta a ponta) | `AuthApiTest`, `SecurityApiTest`, `CompanyApiTest`, `GoalApiTest`, `TaskApiTest`, `AnalyticsApiTest`, `ErrorHandlingApiTest` | Rotas via MockMvc com filtro de segurança, JWT e banco reais |
+
 ## Variáveis de Ambiente
 
 Definidas no arquivo `.env` (não versionado; modelo em `.env.example`). `DB_PASSWORD` e `JWT_SECRET` não têm valor padrão e precisam ser definidas. Sem `JWT_SECRET` (ou com menos de 32 caracteres) a aplicação aborta a subida com uma mensagem explícita; sem `DB_PASSWORD` ela falha ao conectar no banco (ORA-01017).
