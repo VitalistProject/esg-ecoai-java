@@ -3,9 +3,9 @@ services:
     image: gvenzl/oracle-free:23-slim
     container_name: ecoal-db
     environment:
-      ORACLE_PASSWORD: ecoal
-      APP_USER: ecoal
-      APP_USER_PASSWORD: ecoal
+      ORACLE_PASSWORD: ${ORACLE_PASSWORD:?ORACLE_PASSWORD is required, see .env.example}
+      APP_USER: ${DB_USER:?DB_USER is required, see .env.example}
+      APP_USER_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required, see .env.example}
     ports:
       - "1521:1521"
     volumes:
@@ -25,9 +25,9 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      DB_USER: ecoal
-      DB_PASSWORD: ecoal
-      JWT_SECRET: ecoal-dev-secret-key-must-be-at-least-256-bits-long-for-hs256
+      DB_USER: ${DB_USER:?DB_USER is required, see .env.example}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required, see .env.example}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required, see .env.example}
     ports:
       - "8080:8080"
     restart: on-failure

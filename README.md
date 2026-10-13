@@ -22,6 +22,7 @@ API REST para o aplicativo Android EcoAL, permitindo que empresas acompanhem met
 ## Inicialização Rápida (Docker — recomendado)
 
 ```bash
+cp .env.example .env   # preencha os valores
 docker compose up --build
 ```
 
@@ -50,12 +51,9 @@ docker run -d --name oracle-local \
   gvenzl/oracle-free:23-slim
 ```
 
-1. Configure as variáveis de ambiente (ou use os valores padrão):
+1. Crie o arquivo `.env` a partir do exemplo e preencha os valores (a aplicação o lê automaticamente da raiz do projeto):
    ```bash
-   export DB_URL=jdbc:oracle:thin:@localhost:1521/FREEPDB1
-   export DB_USER=ecoal
-   export DB_PASSWORD=ecoal
-   export JWT_SECRET=your-secret
+   cp .env.example .env
    ```
 
 2. Execute a aplicação:
@@ -65,12 +63,15 @@ docker run -d --name oracle-local \
 
 ## Variáveis de Ambiente
 
+Definidas no arquivo `.env` (não versionado; modelo em `.env.example`). `DB_PASSWORD` e `JWT_SECRET` não têm valor padrão e precisam ser definidas. Sem `JWT_SECRET` (ou com menos de 32 caracteres) a aplicação aborta a subida com uma mensagem explícita; sem `DB_PASSWORD` ela falha ao conectar no banco (ORA-01017).
+
 | Variável | Padrão | Descrição |
 |---|---|---|
 | DB_URL | jdbc:oracle:thin:@localhost:1521/FREEPDB1 | URL JDBC do Oracle |
 | DB_USER | ecoal | Usuário do banco de dados |
-| DB_PASSWORD | ecoal | Senha do banco de dados |
-| JWT_SECRET | ecoal-dev-secret-key-... | Chave de assinatura JWT (mínimo 256 bits para HS256) |
+| DB_PASSWORD | (obrigatória) | Senha do banco de dados |
+| ORACLE_PASSWORD | (obrigatória no Compose) | Senha do SYS/SYSTEM do container Oracle |
+| JWT_SECRET | (obrigatória) | Chave de assinatura JWT (mínimo 256 bits para HS256) |
 | SPRING_PROFILES_ACTIVE | (nenhum) | Definir como `docker` ao rodar em container |
 
 ## Rotas

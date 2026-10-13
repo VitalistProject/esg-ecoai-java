@@ -1,5 +1,3 @@
 spring:
   datasource:
     url: jdbc:oracle:thin:@db:1521/FREEPDB1
-    username: ${DB_USER:ecoal}
-    password: ${DB_PASSWORD:ecoal}
