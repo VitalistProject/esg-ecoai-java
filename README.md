@@ -151,7 +151,50 @@ ENTRYPOINT ["java", "-jar", "/app/app.jar"]
 
 ## Prints do funcionamento
 
-> **Pendente:** preencher com as evidências reais (prints em `docs/prints/` ou links) e as URLs dos ambientes, que não estão registradas no repositório.
+| Ambiente | Branch | URL |
+|---|---|---|
+| Staging | `develop` | https://esg-ecoai-java-staging.up.railway.app |
+| Produção | `main` | https://esg-ecoai-java-prod-production.up.railway.app |
+
+### Pull request: build e testes
+
+Pull request da branch `feature/ci-cd` para `develop`. Os estágios de build e testes passam; os de deploy (`deploy-staging` e `deploy-production`) são ignorados, pois só rodam em push.
+
+![Pull request com build e testes aprovados e os deploys ignorados](evidences/feature-branch.png)
+
+### Pipeline de staging (`develop`)
+
+Push em `develop`: build, testes e `deploy-staging` concluídos com sucesso. O `deploy-production` não é executado nessa branch.
+
+![Pipeline de staging concluído com sucesso](evidences/staging-deploy.png)
+
+### Pipeline de produção (`main`)
+
+Push em `main`: build, testes e `deploy-production` concluídos com sucesso. O `deploy-staging` não é executado nessa branch.
+
+![Pipeline de produção concluído com sucesso](evidences/production-deploy.png)
+
+### Infraestrutura no Railway
+
+Cada ambiente tem o serviço da aplicação e um banco PostgreSQL com volume, ambos online.
+
+![Serviço da aplicação e PostgreSQL online no Railway](evidences/railway-infra.png)
+
+**Staging:** deploy ativo com a imagem `ghcr.io/vitalistproject/esg-ecoai-java:staging`.
+
+![Deploy de staging ativo no Railway](evidences/railway-staging.png)
+
+**Produção:** deploy ativo com a imagem `ghcr.io/vitalistproject/esg-ecoai-java:production`.
+
+![Deploy de produção ativo no Railway](evidences/railway-production.png)
+
+### Health check dos ambientes
+
+`GET /actuator/health` responde `200` com `{"status":"UP"}` em staging e em produção.
+
+![Health check de staging respondendo UP](evidences/staging-api.png)
+
+![Health check de produção respondendo UP](evidences/production-api.png)
 
 ## Tecnologias utilizadas
 
